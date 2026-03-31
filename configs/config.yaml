@@ -1,0 +1,29 @@
+data:
+  path: "data/processed/2024pg.csv"
+  targets: ["Aflac", "Fumc"]
+
+features:
+  weather: "40:"
+  soil: "23:40"
+  agronomy: "0:23"
+
+train:
+  cv: 5
+  test_size: 0.2
+  random_state: 41
+
+tuning:
+  rf:
+    n_estimators: [10, 20, 40]
+    max_depth: [25, 30, 35]
+
+  xgb:
+    n_estimators: [10, 20, 30, 200]
+    max_depth: [3, 6, 7]
+    learning_rate: [0.01, 0.1]
+
+  lasso:
+    alpha: [0.001, 0.01, 0.1, 1, 10]
+
+  nn:
+    hidden_layer_sizes: [[64], [64, 32]]
