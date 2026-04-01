@@ -1,11 +1,11 @@
 from src.config_loader import load_config
 from src.models import get_models
 from src.tuning import tune
-from src.crossval import run_cv
 from src.visualize import create_master_figure
 from src.mlflow_tracker import start_experiment, log_run
 from src.preprocessing import preprocess_data
 from src.features import get_feature_sets
+from src.trainnn import train_and_evaluate
 
 import pandas as pd
 
@@ -30,53 +30,52 @@ def main():
 
         print(f"\n🎯 Target: {target}")
 
-        y = dfg[target]
+        y = dfg[target].astype(int)
+
+        # 🔥 FIX: drop ALL targets  
         X = dfg.drop(columns=targets)
 
         for fs_name, features in feature_sets.items():
 
-            print(f"Feature set: {fs_name} ({len(features)} features)")
-
-            # Ensure only valid columns
             features = [f for f in features if f in X.columns]
-
-            X_sub = X[features]
 
             for model_name, model in models.items():
 
-                print(f"Model: {model_name}")
-
-                # ---------------- TUNING ----------------
+                # tuning
                 if model_name in config["tuning"]:
-                    model, params = tune(
+                    model, best_params = tune(
                         model,
                         config["tuning"][model_name],
-                        X_sub,
+                        X[features],
                         y
                     )
                 else:
-                    params = {}
+                    best_params = {}
 
-                # ---------------- CV ----------------
-                metrics = run_cv(model, X_sub, y)
+                # 🔥 FIX: pass names
+                metrics, trained_model, model_id, shap_file = train_and_evaluate(
+                    X, y, features, model, config,
+                    fs_name, model_name, target
+                )
 
-                # ---------------- LOG ----------------
-                log_run(model_name, fs_name, target, metrics, params)
-
-                all_results.append({
+                result_row = {
+                    "model_id": model_id,
                     "target": target,
                     "feature_set": fs_name,
                     "model": model_name,
-                    **metrics
-                })
+                    **metrics,
+                    **best_params
+                }
 
-    # ---------------- SAVE ----------------
+                all_results.append(result_row)
+
     df = pd.DataFrame(all_results)
     import os
     os.makedirs("results", exist_ok=True)
     df.to_csv("results/metrics.csv", index=False)
 
-    # ---------------- FIGURE ----------------
+    print("✅ Results saved:", df.shape)
+
     create_master_figure(df)
 
 

@@ -63,11 +63,21 @@ def plot_shap_grid():
                 shap_df = shap_data.get(key, {}).get(model_name)
 
                 if shap_df is None or shap_df.empty:
+                    # show placeholder subplot
+                    ax.text(0.5, 0.5, "No data", ha='center', va='center')
                     ax.axis("off")
                     continue
 
+                # ---------------- HANDLE ALL-ZERO SHAP ----------------
+                if (shap_df['shap_value'].abs().sum() == 0):
+                    shap_df_plot = shap_df.copy()
+                    # Add tiny dummy value to force bar plot
+                    shap_df_plot.loc[0, 'shap_value'] = 1e-6
+                else:
+                    shap_df_plot = shap_df
+
                 # ---------------- BAR PLOT ----------------
-                ax.barh(shap_df['feature'][::-1], shap_df['shap_value'][::-1], color='skyblue')
+                ax.barh(shap_df_plot['feature'][::-1], shap_df_plot['shap_value'][::-1], color='skyblue')
                 ax.set_xlabel("Mean |SHAP| / Importance")
                 ax.set_title(f"{target} - {fs_name} - {model_name}", fontsize=9)
 
@@ -75,8 +85,8 @@ def plot_shap_grid():
 
     os.makedirs("results/plots/shap", exist_ok=True)
     plt.tight_layout(rect=[0, 0, 1, 0.94])
-    plt.savefig("results/plots/shap_top10_grid.png", dpi=300)
-
+    plt.savefig("results/plots/shap/shap_top10_grid_4x6.png", dpi=300)
+    plt.show()
     plt.close()
 
     print("✅ SHAP/Feature Importance top-10 grid saved → results/plots/shap/shap_top10_grid_4x6.png")

@@ -1,5 +1,6 @@
 pandas
 numpy
+seaborn
 scikit-learn
 matplotlib
 xgboost
@@ -9,3 +10,5 @@ shap
 scipy
 tensorflow
 imblearn
+geopandas
+azureml-sdk

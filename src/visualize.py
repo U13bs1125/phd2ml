@@ -4,13 +4,12 @@ import numpy as np
 import pandas as pd
 
 
-def radar(ax, values_dict, color_map):
+def radar(ax, values_dict, color_map, all_models):
     metrics = ["accuracy", "precision", "recall", "f1"]
 
     angles = np.linspace(0, 2 * np.pi, len(metrics), endpoint=False).tolist()
     angles += angles[:1]
 
-    # Axis styling
     ax.set_xticks(angles[:-1])
     ax.set_xticklabels(metrics, fontsize=9)
 
@@ -20,9 +19,16 @@ def radar(ax, values_dict, color_map):
 
     ax.grid(True)
 
-    # Plot models with consistent colors
-    for model, vals in values_dict.items():
-        v = [vals[m] for m in metrics]
+    # 🔥 Ensure ALL models appear
+    for model in all_models:
+
+        if model in values_dict:
+            vals = values_dict[model]
+            v = [vals[m] for m in metrics]
+        else:
+            # Missing model → show as zero or skip
+            v = [0, 0, 0, 0]
+
         v += v[:1]
 
         ax.plot(angles, v, linewidth=2, color=color_map[model])
@@ -32,13 +38,14 @@ def radar(ax, values_dict, color_map):
 def create_master_figure(results_df):
 
     targets = ["Aflac", "Fumc"]
-    feature_sets = ["weather", "weather_soil", "all"]
+    feature_sets = ["weather", "weather_soil", "weather_soil_agro"]
 
-    models = results_df["model"].unique()
+    # 🔥 Get ALL models globally
+    all_models = sorted(results_df["model"].unique())
 
-    # 🔥 Consistent color map
+    # Consistent colors
     cmap = plt.get_cmap("tab10")
-    color_map = {model: cmap(i) for i, model in enumerate(models)}
+    color_map = {model: cmap(i) for i, model in enumerate(all_models)}
 
     fig = plt.figure(figsize=(24, 18))
 
@@ -72,6 +79,11 @@ def create_master_figure(results_df):
                 (results_df["feature_set"] == fs)
             ]
 
+            # 🔥 Handle empty subset
+            if subset.empty:
+                ax.set_title(f"{target} - {fs} (No Data)", fontsize=11)
+                continue
+
             values_dict = {
                 row["model"]: {
                     "accuracy": row["accuracy"],
@@ -82,34 +94,33 @@ def create_master_figure(results_df):
                 for _, row in subset.iterrows()
             }
 
-            if values_dict:
-                radar(ax, values_dict, color_map)
+            radar(ax, values_dict, color_map, all_models)
 
             ax.set_title(f"{target} - {fs}", fontsize=11, pad=12)
 
     # ---------------- GLOBAL LEGEND ----------------
     handles = [
         plt.Line2D([0], [0], color=color_map[m], lw=2)
-        for m in models
+        for m in all_models
     ]
 
     fig.legend(
         handles,
-        models,
+        all_models,
         loc="center right",
         fontsize=12,
         title="Models",
         bbox_to_anchor=(0.92, 0.5)
     )
 
-    # ---------------- LAYOUT FIX ----------------
-    plt.tight_layout(rect=[0, 0, 0.90, 0.93])  # leave space for legend
+    # ---------------- LAYOUT ----------------
+    plt.tight_layout(rect=[0, 0, 0.90, 0.93])
 
     # ---------------- SAVE ----------------
     os.makedirs("results/plots", exist_ok=True)
     plt.savefig("results/plots/master_figure.png", dpi=300, bbox_inches='tight')
 
-    plt.show()
+
     plt.close()
 
     print("✅ Figure saved to results/plots/master_figure.png")
