@@ -86,7 +86,7 @@ def plot_shap_grid():
     os.makedirs("results/plots/shap", exist_ok=True)
     plt.tight_layout(rect=[0, 0, 1, 0.94])
     plt.savefig("results/plots/shap/shap_top10_grid_4x6.png", dpi=300)
-    plt.show()
+
     plt.close()
 
     print("✅ SHAP/Feature Importance top-10 grid saved → results/plots/shap/shap_top10_grid_4x6.png")

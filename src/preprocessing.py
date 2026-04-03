@@ -17,6 +17,8 @@ def preprocess_data(
 
     # ---------------- LOAD ----------------
     dfg = pd.read_csv(input_path)
+    dfg2 = pd.read_csv("data/selected/2024pg_sfm.csv")
+    dfg2columns = dfg2.columns
 
     # ---------------- DATES ----------------
     for col in ["Harvestdate", "Sowdate"]:
@@ -27,7 +29,7 @@ def preprocess_data(
     dfg["sow_month"] = dfg["Sowdate"].dt.month
 
     # ---------------- TARGETS ----------------
-    dfg["Aflac"] = np.where(dfg["Afla"] > 4, 1, 0)
+    dfg["Aflac"] = np.where(dfg["Afla"] > 10, 1, 0)
     dfg["Fumc"] = np.where(dfg["Fum"] > 4000, 1, 0)
 
     targetscol = ["Aflac", "Fumc", "Afla", "Fum"]
@@ -83,9 +85,9 @@ def preprocess_data(
     ]
 
     # ---------------- CLEAN FEATURE GROUPS ----------------
-    soil_cols = [c for c in soil_cols if c in dfg.columns]
-    weather_cols = [c for c in weather_cols if c in dfg.columns]
-    agro_cols = [c for c in agro_cols if c in dfg.columns]
+    soil_cols = [c for c in soil_cols if c in dfg.columns and c in dfg2columns]
+    weather_cols = [c for c in weather_cols if c in dfg.columns and c in dfg2columns]
+    agro_cols = [c for c in agro_cols if c in dfg.columns and c in dfg2columns]
 
     # ---------------- FEATURE DICTIONARY ----------------
     feature_dict = {

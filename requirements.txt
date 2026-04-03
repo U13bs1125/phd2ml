@@ -11,4 +11,4 @@ scipy
 tensorflow
 imblearn
 geopandas
-azureml-sdk
+

@@ -79,7 +79,7 @@ def plot_shap_grid():
 
     plt.close()
 
-    print("✅ SHAP/Feature Importance top-10 grid saved → results/plots/shap/shap_top10_grid_4x6.png")
+    print("✅ SHAP/Feature Importance top-10 grid saved → results/plots/shap_top10_grid.png")
 
 
 # ---------------- RUN ----------------

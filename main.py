@@ -6,11 +6,15 @@ from src.mlflow_tracker import start_experiment, log_run
 from src.preprocessing import preprocess_data
 from src.features import get_feature_sets
 from src.trainnn import train_and_evaluate
+from src.shap_analysis import plot_shap_grid
+from src.ft_selection import shap_selection
 
 import pandas as pd
 
 
 def main():
+
+    #forward_selection()
 
     # ---------------- PREPROCESS ----------------
     dfg, feature_dict = preprocess_data("data/preprocessed/2024pg.csv")
@@ -77,6 +81,7 @@ def main():
     print("✅ Results saved:", df.shape)
 
     create_master_figure(df)
+    plot_shap_grid()
 
 
 if __name__ == "__main__":
