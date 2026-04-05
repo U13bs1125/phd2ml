@@ -73,13 +73,13 @@ def plot_shap_grid():
 
     fig.suptitle("Top 10 Feature Importance per Model / Feature Set", fontsize=16, y=0.95)
 
-    os.makedirs("results/plots/shap", exist_ok=True)
+    os.makedirs("results/plots", exist_ok=True)
     plt.tight_layout(rect=[0, 0, 1, 0.94])
-    plt.savefig("results/plots/shap_top10_grid.png", dpi=300)
+    plt.savefig("results/plots/figure3_shaptop10.png", dpi=300)
 
     plt.close()
 
-    print("✅ SHAP/Feature Importance top-10 grid saved → results/plots/shap_top10_grid.png")
+    print("✅ SHAP/Feature Importance top-10 grid saved → results/plots/figure3_shaptop10.png")
 
 
 # ---------------- RUN ----------------

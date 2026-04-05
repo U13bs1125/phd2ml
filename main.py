@@ -1,13 +1,18 @@
 from src.config_loader import load_config
 from src.models import get_models
 from src.tuning import tune
-from src.visualize import create_master_figure
+from figure2_performance import create_figure2_performance
 from src.mlflow_tracker import start_experiment, log_run
 from src.preprocessing import preprocess_data
 from src.features import get_feature_sets
 from src.trainnn import train_and_evaluate
-from src.shap_analysis import plot_shap_grid
+from figure3_featureimp import plot_shap_grid
 from src.ft_selection import shap_selection
+from figure4_generalization import create_generalization_figure
+from src.data import load_data
+from figure5_climatechange import create_climate_figure
+from figure1_introstats import create_introstats_figure
+import matplotlib.pyplot as plt
 
 import pandas as pd
 
@@ -32,11 +37,11 @@ def main():
     # ---------------- LOOP ----------------
     for target in targets:
 
-        print(f"\n🎯 Target: {target}")
+        print(f"\n Target: {target}")
 
         y = dfg[target].astype(int)
 
-        # 🔥 FIX: drop ALL targets  
+        #  FIX: drop ALL targets  
         X = dfg.drop(columns=targets)
 
         for fs_name, features in feature_sets.items():
@@ -56,7 +61,7 @@ def main():
                 else:
                     best_params = {}
 
-                # 🔥 FIX: pass names
+                #  FIX: pass names
                 metrics, trained_model, model_id, shap_file = train_and_evaluate(
                     X, y, features, model, config,
                     fs_name, model_name, target
@@ -78,11 +83,20 @@ def main():
     os.makedirs("results", exist_ok=True)
     df.to_csv("results/metrics.csv", index=False)
 
-    print("✅ Results saved:", df.shape)
+    print("Results saved:", df.shape)
 
-    create_master_figure(df)
+    create_figure2_performance(df)
     plot_shap_grid()
+    create_generalization_figure(df = load_data())
+    create_climate_figure()
 
 
 if __name__ == "__main__":
     main()
+
+
+# by the side
+from src.preprocessing import preprocess_data
+df, feature_dict = preprocess_data("data/preprocessed/2024pg.csv")
+dff = pd.read_csv("data/preprocessed/2024pg.csv")
+create_introstats_figure(dff, feature_dict)

@@ -296,7 +296,7 @@ def plot_crop_vs_generic(ax, df):
     ax.legend()
 
 # ---------------- MAIN ----------------
-def create_figure(df):
+def create_generalization_figure(df):
 
     fig, axes = plt.subplots(2, 3, figsize=(18, 10))
 
@@ -315,4 +315,4 @@ def create_figure(df):
 # ---------------- RUN ----------------
 if __name__ == "__main__":
     df = load_data()
-    create_figure(df)
+    create_generalization_figure(df)

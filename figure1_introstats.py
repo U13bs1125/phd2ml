@@ -119,7 +119,7 @@ def plot_summary_table(ax, df):
     
 
 # ---------------- MAIN FIGURE ----------------
-def create_figure(df, feature_dict):
+def create_introstats_figure(df, feature_dict):
     fig, axes = plt.subplots(2,4, figsize=(22,15))
     axes = axes.flatten()
 
@@ -145,7 +145,7 @@ def create_figure(df, feature_dict):
    
 
     os.makedirs("results/plots", exist_ok=True)
-    plt.savefig("results/plots/figure1.png", dpi=300)
+    plt.savefig("results/plots/figure1_introstats.png", dpi=300)
     plt.close()
 
 # ---------------- RUN ----------------
@@ -153,4 +153,4 @@ if __name__ == "__main__":
     from src.preprocessing import preprocess_data
     dff, feature_dict = preprocess_data("data/preprocessed/2024pg.csv")
     df = pd.read_csv("data/preprocessed/2024pg.csv")
-    create_figure(df, feature_dict)
+    create_introstats_figure(df, feature_dict)

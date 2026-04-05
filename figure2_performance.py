@@ -35,7 +35,7 @@ def radar(ax, values_dict, color_map, all_models):
         ax.fill(angles, v, alpha=0.1, color=color_map[model])
 
 
-def create_master_figure(results_df):
+def create_figure2_performance(results_df):
 
     targets = ["Aflac", "Fumc"]
     feature_sets = ["weather", "weather_soil", "weather_soil_agro"]
@@ -118,9 +118,13 @@ def create_master_figure(results_df):
 
     # ---------------- SAVE ----------------
     os.makedirs("results/plots", exist_ok=True)
-    plt.savefig("results/plots/master_figure.png", dpi=300, bbox_inches='tight')
+    plt.savefig("results/plots/figure2_performance.png", dpi=300, bbox_inches='tight')
 
 
     plt.close()
 
-    print("✅ Figure saved to results/plots/master_figure.png")
+    print("✅ Figure saved to results/plots/figure2_performance.png")
+
+if __name__ == "__main__":
+    results_df = pd.read_csv("results/metrics.csv")
+    create_figure2_performance(results_df)
