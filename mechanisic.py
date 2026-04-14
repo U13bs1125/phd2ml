@@ -74,7 +74,7 @@ def compute_ari_from_features(df, n_bins=5):
 
         # Add emergence correction
         if len(GDD_daily) > 0:
-            GDD_daily[0] += 50
+            GDD_daily[0] += 50 # meaning emergence happens at 50 GDD
 
         GDD_cum = np.cumsum(GDD_daily)
 
@@ -144,8 +144,12 @@ def compute_ari_from_features(df, n_bins=5):
 # =====================================
 if __name__ == "__main__":
     df = pd.read_csv("data/processed/2024pg.csv")
+    df2 = pd.read_csv("data/selected/2024pg_rf.csv")
 
     df_with_ari, ari_df = compute_ari_from_features(df)
+
+    df_sel_ari = pd.concat([ari_df, df2], axis=1)
+    df_sel_ari.to_csv("data/selected/2024pg_rf_with_ari.csv", index=False)
 
     df_with_ari.to_csv("data/weather_soil_agro_with_ari.csv", index=False)
 
