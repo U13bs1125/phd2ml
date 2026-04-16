@@ -12,3 +12,4 @@ tensorflow
 imblearn
 geopandas
 plotly
+torch --index-url https://download.pytorch.org/whl/cpu
