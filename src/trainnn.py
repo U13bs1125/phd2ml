@@ -3,6 +3,8 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 from imblearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 from imblearn.over_sampling import SMOTE
+from imblearn.under_sampling import EditedNearestNeighbours
+from imblearn.combine import SMOTEENN
 from sklearn.base import is_classifier
 
 import numpy as np
@@ -32,7 +34,7 @@ def train_and_evaluate(X, y, features, model, config,
     # ---------------- PIPELINE ----------------
     pipeline = Pipeline([
         ("scaler", StandardScaler()),
-        ("smote", SMOTE(random_state=config["train"]["random_state"])),
+        ("smote", SMOTEENN(random_state=config["train"]["random_state"], smote=SMOTE(random_state=config["train"]["random_state"], k_neighbors=3, sampling_strategy=0.5),enn =EditedNearestNeighbours(n_neighbors=3))),
         ("model", model)
     ])
 
@@ -116,8 +118,7 @@ def train_and_evaluate(X, y, features, model, config,
         "accuracy": accuracy_score(y_test, y_pred),
         "precision": precision_score(y_test, y_pred, zero_division=0),
         "recall": recall_score(y_test, y_pred, zero_division=0),
-        "f1": f1_score(y_test, y_pred, zero_division=0),
-        "r2": r2_score(y_test, y_pred)
+        "f1": f1_score(y_test, y_pred, zero_division=0)
     }
 
     # ---------------- MODEL ID ----------------

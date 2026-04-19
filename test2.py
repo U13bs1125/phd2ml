@@ -6,6 +6,8 @@ import os
 
 from sklearn.model_selection import GridSearchCV
 from imblearn.over_sampling import SMOTE
+from imblearn.under_sampling import EditedNearestNeighbours
+from imblearn.combine import SMOTEENN
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import (
@@ -26,9 +28,12 @@ def apply_safe_smote(X, y):
         return X, y
 
     # 🔥 Adaptive k_neighbors
-    k_neighbors = min(10, min_class - 1)
+    k_neighbors = min(5, min_class - 1)
 
-    smote = SMOTE(random_state=42, k_neighbors=k_neighbors)
+    smote = SMOTEENN(random_state=42,
+                    smote=SMOTE(random_state=42, k_neighbors=k_neighbors, sampling_strategy=0.5),
+                    enn=EditedNearestNeighbours(n_neighbors=k_neighbors)
+                    )
 
     try:
         X_res, y_res = smote.fit_resample(X, y)
