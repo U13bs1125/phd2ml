@@ -22,27 +22,91 @@ def plot_workflow(ax):
     ax.set_title("A. Workflow", fontsize=10)
 
 # ---------------- GEO MAP ----------------
-def plot_geo_map(ax, df, group, title):
-    if {"Latitude", "Longitude", group}.issubset(df.columns):
-        world = gpd.read_file('https://naciscdn.org/naturalearth/110m/cultural/ne_110m_admin_0_countries.zip')
-        world.plot(ax=ax, color="lightgrey", edgecolor="white")
+def plot_geo_map(ax, df, group, title, hatch_group=None, use_country=False):
 
-        geometry = [Point(xy) for xy in zip(df["Longitude"], df["Latitude"])]
-        gdf = gpd.GeoDataFrame(df, geometry=geometry)
+    required_cols = {"Latitude", "Longitude", group}
+    if not required_cols.issubset(df.columns):
+        ax.axis("off")
+        ax.text(0.5, 0.5, "No Map Data", ha='center')
+        return
 
-        groups = df[group].dropna().unique()
+    # Load map
+    world = gpd.read_file("data/Africa_shapefiles/Africa_Countries.shp")
+
+    # -------------------------------
+    # COUNTRY-LEVEL MODE (COLOR + HATCH)
+    # -------------------------------
+    if use_country and "Country" in df.columns:
+
+        # Clean names
+        df["Country"] = df["Country"].str.strip().str.upper()
+        world["Country"] = world["Country"].str.strip().str.upper()
+        print(world[[group, hatch_group]].isna().sum())
+
+        # Aggregate dominant values
+        agg_dict = {
+            group: lambda x: x.mode()[0] if not x.mode().empty else None
+        }
+
+        if hatch_group and hatch_group in df.columns:
+            agg_dict[hatch_group] = lambda x: x.mode()[0] if not x.mode().empty else None
+
+        agg = df.groupby("Country").agg(agg_dict).reset_index()
+        world = world.merge(agg, on="Country", how="left")
+
+        # Color palette
+        groups = world[group].dropna().unique()
         palette = sns.color_palette("tab10", len(groups))
         color_dict = {g: palette[i] for i, g in enumerate(groups)}
 
-        for g in groups:
-            subset = gdf[gdf[group] == g]
-            subset.plot(ax=ax, color=color_dict[g], markersize=1, alpha=0.7, label=str(g))
-        ax.legend(fontsize=6)
-        ax.set_title(title, fontsize=10)
-        ax.set_axis_off()
+        # Hatch patterns
+        hatch_patterns = ["///", "...", "xxx", "\\\\", "++"]
+        hatch_dict = {}
+        if hatch_group:
+            hatch_vals = world[hatch_group].dropna().unique()
+            hatch_dict = {h: hatch_patterns[i % len(hatch_patterns)] for i, h in enumerate(hatch_vals)}
+
+        # Draw countries
+        for _, row in world.iterrows():
+            color = color_dict.get(row[group], "lightgrey")
+            hatch = hatch_dict.get(row[hatch_group], "") if hatch_group else ""
+
+            gpd.GeoSeries([row.geometry]).plot(
+                ax=ax,
+                facecolor=color,
+                edgecolor="black",
+                hatch=hatch,
+                linewidth=0.5
+            )
+
     else:
-        ax.axis("off")
-        ax.text(0.5,0.5,"No Map Data", ha='center')
+        # fallback: plain map
+        world.plot(ax=ax, color="lightgrey", edgecolor="white")
+
+    # -------------------------------
+    # POINT PLOTTING (your original logic)
+    # -------------------------------
+    geometry = [Point(xy) for xy in zip(df["Longitude"], df["Latitude"])]
+    gdf = gpd.GeoDataFrame(df, geometry=geometry, crs="EPSG:4326")
+    gdf = gdf.to_crs(world.crs)
+
+    groups = df[group].dropna().unique()
+    palette = sns.color_palette("tab10", len(groups))
+    color_dict = {g: palette[i] for i, g in enumerate(groups)}
+
+    for g in groups:
+        subset = gdf[gdf[group] == g]
+        subset.plot(
+            ax=ax,
+            color=color_dict[g],
+            markersize=2,
+            alpha=0.6,
+            label=str(g)
+        )
+
+    ax.legend(fontsize=6)
+    ax.set_title(title, fontsize=10)
+    ax.set_axis_off()
 
 # ---------------- DISTRIBUTION ----------------
 def plot_distribution(ax, df, target):
@@ -55,6 +119,17 @@ def plot_distribution(ax, df, target):
         ax.axis("off")
         ax.text(0.5,0.5,"No Distribution Data", ha='center')
 
+# PLOT correlations
+def plot_correlations(ax, df, cols, title):
+    cols = [c for c in cols if c in df.columns]
+
+    if len(cols) > 1:
+        corr = df[cols].corr()
+        sns.heatmap(corr, ax=ax, cmap="coolwarm", annot=False)
+        ax.set_title(title, fontsize=10)
+    else:
+        ax.axis("off")
+        ax.text(0.5, 0.5, "Not enough data", ha="center")
 # ---------------- CLASS IMBALANCE ----------------
 def plot_imbalance(ax, df):
     if {"Afla","Fum"}.issubset(df.columns):
@@ -116,11 +191,17 @@ def plot_summary_table(ax, df):
         ax.axis("off")
         ax.text(0.5,0.5,"No Summary Data", ha='center')
 
-    
+df3 = pd.read_csv("data/ari_values.csv")
+import json    
+soil_cols = [c for c in json.load(open("artifacts/features/soil.json"))] + ["Afla"]
 
+temp_cols = [c for c in json.load(open("artifacts/features/weather.json"))] + ["Afla"]
+rh_cols = [c for c in json.load(open("artifacts/features/weather.json")) if c.startswith("RH")] + ["Afla"]
+precip_cols = [c for c in json.load(open("artifacts/features/weather.json")) if c.startswith("PRECTOT")]   + ["Afla"]
+ari_cols = [c for c in df3.columns if c.startswith("ARI_")]
 # ---------------- MAIN FIGURE ----------------
 def create_introstats_figure(df, feature_dict):
-    fig, axes = plt.subplots(2,4, figsize=(22,15))
+    fig, axes = plt.subplots(3,4, figsize=(22,18))
     axes = axes.flatten()
 
     # Row 1
@@ -135,6 +216,13 @@ def create_introstats_figure(df, feature_dict):
     plot_distribution(axes[5], df, "Afla")
     plot_distribution(axes[6], df, "Fum")
     plot_imbalance(axes[7], df)
+
+# Row 3 (NEW 🔥)
+    plot_correlations(axes[8], df, soil_cols, "Soil Correlation")
+    plot_correlations(axes[9], df, temp_cols, "Temperature Correlation")
+    plot_correlations(axes[10], df, rh_cols, "Humidity (RH2M) Correlation")
+    plot_correlations(axes[11], df, precip_cols, "Precipitation Correlation")
+    
 
     
     
@@ -153,4 +241,5 @@ if __name__ == "__main__":
     from src.preprocessing import preprocess_data
     dff, feature_dict = preprocess_data("data/preprocessed/2024pg.csv")
     df = pd.read_csv("data/preprocessed/2024pg.csv")
+    
     create_introstats_figure(df, feature_dict)
