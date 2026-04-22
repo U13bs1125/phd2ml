@@ -9,6 +9,7 @@ import numpy as np
 # =========================
 df = pd.read_csv("data/preprocessed/2024pg.csv")
 
+print(df)
 # =========================
 # NASA POWER PARAMETERS
 # =========================
@@ -110,7 +111,7 @@ for _, row in tqdm(df.iterrows(), total=len(df)):
 # SAVE OUTPUT
 # =========================
 weather_df = pd.DataFrame(weather_rows)
-
+# replace the original rows with these based on coordinates
 weather_df.to_csv("data/preprocessed/2024pw_daily8p120.csv", index=False)
 
 print("Daily aligned weather features generated.")

@@ -5,10 +5,10 @@ import pandas as pd
 # =====================================
 # GDD FUNCTION (from original logic)
 # =====================================
-def get_gdd(T, Tbase=6, Tcut=30):
+def get_gdd(T, Tbase=10, Tcut=40):
     if pd.isna(T):
         return 0
-    T_adj = np.clip(T, Tbase, Tcut)
+    T_adj = np.clip(T, Tbase, Tcut) # 
     return max(0, T_adj - Tbase)
 
 
